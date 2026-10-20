@@ -5,7 +5,7 @@ alwaysApply: true
 
 # First prompt
 
-Read `AGENTS.md` before editing, deploying, or answering how to go live. That file is the full product guide: architecture, GitHub, VPS, DNS, keys, and deploy.
+Read `AGENTS.md` before editing, deploying, or answering how to go live. That file is the full product guide: architecture, GitHub, VPS, DNS, every account and key, Stripe, PayPal, Resend, Utmify, cron, admin, and the first campaign.
 
 This folder is a standalone white-label donation storefront. There is no sibling repo. Do not copy brand, campaigns, databases, Stripe, PayPal, Utmify, or `.env` from another operation. Do not restore names, EINs, domains, IPs, or photos that were stripped from this clone.
 

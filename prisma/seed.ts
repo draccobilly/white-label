@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
-import { SiteMode } from "../generated/prisma/enums";
+import { CampaignLayout, PaymentGateway, SiteMode } from "../generated/prisma/enums";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
@@ -63,6 +63,10 @@ async function main() {
       name,
       siteName: name,
       domain,
+      locale: "en",
+      publicPathPrefix: null,
+      paymentGateway: PaymentGateway.STRIPE,
+      campaignLayout: CampaignLayout.IMPACT,
       siteMode: SiteMode.INSTITUTIONAL,
     },
     create: {
@@ -70,6 +74,9 @@ async function main() {
       slug,
       domain,
       isDefault: true,
+      locale: "en",
+      paymentGateway: PaymentGateway.STRIPE,
+      campaignLayout: CampaignLayout.IMPACT,
       siteMode: SiteMode.INSTITUTIONAL,
       siteName: name,
       landingTitle: name,
