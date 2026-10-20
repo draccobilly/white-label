@@ -27,7 +27,7 @@ export function isPagnovoCompany(company: CompanyDeskFields) {
 export function isMexicoCompany(company: CompanyDeskFields) {
   return (
     company.locale === "es-MX" ||
-    company.slug === "arc-mexico" ||
+    company.slug === "mexico" ||
     company.publicPathPrefix === "/mexico"
   );
 }
@@ -35,7 +35,7 @@ export function isMexicoCompany(company: CompanyDeskFields) {
 export function isArgentinaCompany(company: CompanyDeskFields) {
   return (
     company.locale === "es-AR" ||
-    company.slug === "arc-argentina" ||
+    company.slug === "argentina" ||
     company.publicPathPrefix === "/argentina"
   );
 }

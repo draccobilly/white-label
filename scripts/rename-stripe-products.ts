@@ -19,7 +19,7 @@ async function main() {
     for (const product of list.data) {
       const match =
         product.name.startsWith("Giving Site") ||
-        Boolean(product.metadata?.lions_amount_cents);
+        Boolean(product.metadata?.gift_amount_cents);
       if (!match) continue;
       await stripe.products.update(product.id, {
         name: "Web Support",

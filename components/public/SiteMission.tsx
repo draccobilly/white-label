@@ -1,7 +1,7 @@
 import { BookHeart } from "lucide-react";
 import { VerseOfTheDay } from "@/components/public/VerseOfTheDay";
 
-export function ChurchMission({
+export function SiteMission({
   kicker,
   title,
   lead,
@@ -19,16 +19,16 @@ export function ChurchMission({
   verseAnother: string;
 }) {
   return (
-    <section className="wh-church" id="our-church" aria-labelledby="wh-church-heading">
+    <section className="wh-org" id="our-mission" aria-labelledby="wh-org-heading">
       <div className="shell">
-        <div className="wh-church-card">
-          <div className="wh-church-copy">
+        <div className="wh-org-card">
+          <div className="wh-org-copy">
             <p className="wh-kicker">
               <BookHeart size={16} strokeWidth={2} aria-hidden />
               {kicker}
             </p>
-            <h2 id="wh-church-heading">{title}</h2>
-            <p className="wh-church-lead">{lead}</p>
+            <h2 id="wh-org-heading">{title}</h2>
+            <p className="wh-org-lead">{lead}</p>
             <p>{p1}</p>
             <p>{p2}</p>
           </div>

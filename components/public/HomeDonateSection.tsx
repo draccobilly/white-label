@@ -81,22 +81,22 @@ export function HomeDonateSection({
   const reportPaypal = useCallback((message: string) => setPaypalError(message), []);
 
   return (
-    <div className="ch-give-block">
-      <div className="ch-cause-head">
-        <p className="ch-kicker">{copy.kicker}</p>
-        <h2 id="ch-cause-grid-heading">{copy.heading}</h2>
+    <div className="ih-give-block">
+      <div className="ih-cause-head">
+        <p className="ih-kicker">{copy.kicker}</p>
+        <h2 id="ih-cause-grid-heading">{copy.heading}</h2>
       </div>
-      <ul className="ch-cause-grid" aria-labelledby="ch-cause-grid-heading">
+      <ul className="ih-cause-grid" aria-labelledby="ih-cause-grid-heading">
         {FOUNDATION_CAUSES.map((item) => {
           const text = causeText(item, lang);
           const percent = progressPercent(item.currentAmount, item.goalAmount);
           return (
             <li key={item.slug} className={item.slug === cause?.slug ? "is-selected" : ""}>
               <Link href={causePath(item.slug, lang)}>
-                <span className="ch-cause-photo" style={{ backgroundImage: `url(${item.image})` }} />
+                <span className="ih-cause-photo" style={{ backgroundImage: `url(${item.image})` }} />
                 <strong>{text.title}</strong>
-                <span className="ch-cause-progress">
-                  <span className="ch-cause-bar" aria-hidden>
+                <span className="ih-cause-progress">
+                  <span className="ih-cause-bar" aria-hidden>
                     <i style={{ width: `${percent}%` }} />
                   </span>
                   <em>
@@ -112,11 +112,11 @@ export function HomeDonateSection({
           );
         })}
       </ul>
-      <div className="ch-donate-panel" id="donate">
-        <p className="ch-kicker">{copy.donateKicker}</p>
+      <div className="ih-donate-panel" id="donate">
+        <p className="ih-kicker">{copy.donateKicker}</p>
         <h3>{copy.donateHeading}</h3>
-        <p className="ch-donate-lead">{copy.lead}</p>
-        <div className="ch-ticket-grid" role="group" aria-label={copy.amounts}>
+        <p className="ih-donate-lead">{copy.lead}</p>
+        <div className="ih-ticket-grid" role="group" aria-label={copy.amounts}>
           {tickets.map((ticket) => (
             <button
               type="button"
@@ -134,10 +134,10 @@ export function HomeDonateSection({
             </button>
           ))}
         </div>
-        <label className="ch-custom">
+        <label className="ih-custom">
           <span>{copy.custom}</span>
-          <span className="ch-custom-field">
-            <span className="ch-custom-sign" aria-hidden>
+          <span className="ih-custom-field">
+            <span className="ih-custom-sign" aria-hidden>
               $
             </span>
             <input
@@ -155,7 +155,7 @@ export function HomeDonateSection({
             />
           </span>
         </label>
-        <label className="ch-cause-pick">
+        <label className="ih-cause-pick">
           <span>{copy.goesTo}</span>
           <select value={cause?.slug} onChange={(event) => setCauseSlug(event.target.value)}>
             {FOUNDATION_CAUSES.map((item) => (
@@ -166,11 +166,11 @@ export function HomeDonateSection({
           </select>
         </label>
         {cause && amount ? (
-          <Link className="ch-donate-go" href={causeGivePath(cause.slug, lang, amount)}>
+          <Link className="ih-donate-go" href={causeGivePath(cause.slug, lang, amount)}>
             {copy.donate} {formatMoney(amount, "USD")}
           </Link>
         ) : (
-          <button type="button" className="ch-donate-go" disabled>
+          <button type="button" className="ih-donate-go" disabled>
             {copy.donate}
           </button>
         )}
@@ -190,7 +190,7 @@ export function HomeDonateSection({
             onError={reportPaypal}
           />
         ) : null}
-        {paypalError ? <p className="ch-donate-error">{paypalError}</p> : null}
+        {paypalError ? <p className="ih-donate-error">{paypalError}</p> : null}
       </div>
     </div>
   );

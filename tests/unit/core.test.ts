@@ -112,7 +112,7 @@ import {
 } from "@/lib/date-range";
 import { campaignNameTag, isNewCampaign } from "@/lib/campaign-label";
 import { plainStoryText, storySegments, toggleStoryBold } from "@/lib/story-text";
-import { excludeSocialSeedSales, paidLiveSalesWhere, giftAmountCents, tipAmountCents, hasChurchMissionTip, resolvedChurchTipCents, CHURCH_MISSION_TIP_CENTS } from "@/lib/sale-filters";
+import { excludeSocialSeedSales, paidLiveSalesWhere, giftAmountCents, tipAmountCents, hasMissionTip, resolvedMissionTipCents, MISSION_TIP_CENTS } from "@/lib/sale-filters";
 import {
   campaignCommentPool,
   commentsStampOnePhrase,
@@ -287,7 +287,7 @@ describe("campaign helpers", () => {
         amounts: [...STANDARD_DONATION_AMOUNTS],
         suggestedAmount: 2500,
       },
-      { locale: "es-MX", slug: "arc-mexico", paymentGateway: "PAGNOVO" },
+      { locale: "es-MX", slug: "mexico", paymentGateway: "PAGNOVO" },
       false,
     );
     expect(created.currency).toBe("MXN");
@@ -308,7 +308,7 @@ describe("campaign helpers", () => {
         amounts: [...STANDARD_DONATION_AMOUNTS],
         suggestedAmount: 2500,
       },
-      { locale: "es-AR", slug: "arc-argentina", paymentGateway: "PAGNOVO" },
+      { locale: "es-AR", slug: "argentina", paymentGateway: "PAGNOVO" },
       false,
     );
     expect(created.currency).toBe("ARS");
@@ -316,7 +316,7 @@ describe("campaign helpers", () => {
     expect(created.amounts).toEqual([...ARS_DONATION_AMOUNTS]);
     expect(created.suggestedAmount).toBe(ARS_SUGGESTED_AMOUNT);
     expect(created.amounts[0]).toBe(200_000);
-    expect(applyMexicoCreateDefaults(created, { locale: "es-AR", slug: "arc-argentina" }, false)).toEqual(
+    expect(applyMexicoCreateDefaults(created, { locale: "es-AR", slug: "argentina" }, false)).toEqual(
       created,
     );
   });
@@ -340,7 +340,7 @@ describe("campaign helpers", () => {
         storyHeading: "Why this campaign matters",
         category: "Urgent cause",
       },
-      { locale: "es-MX", slug: "arc-mexico", paymentGateway: "PAGNOVO" },
+      { locale: "es-MX", slug: "mexico", paymentGateway: "PAGNOVO" },
       false,
     );
     expect(duplicated.storyHeading).toBe("Por qué importa esta campaña");
@@ -355,7 +355,7 @@ describe("campaign helpers", () => {
         amounts: [10_000, 99_000],
         suggestedAmount: 99_000,
       },
-      { locale: "es-MX", slug: "arc-mexico", paymentGateway: "PAGNOVO" },
+      { locale: "es-MX", slug: "mexico", paymentGateway: "PAGNOVO" },
       true,
     );
     expect(saved.amounts).toEqual([10_000, 99_000]);
@@ -382,7 +382,7 @@ describe("campaign helpers", () => {
   it("leaves United States create amounts and currency unchanged", () => {
     const us = {
       locale: "en",
-      slug: "arc-human-giving",
+      slug: "giving-site",
       paymentGateway: "STRIPE",
     };
     const input = {
@@ -400,7 +400,7 @@ describe("campaign helpers", () => {
   it("detects desks from company fields, not campaign currency", () => {
     const us = {
       locale: "en",
-      slug: "arc-human-giving",
+      slug: "giving-site",
       paymentGateway: "STRIPE",
     };
     expect(isMexicoCompany(us)).toBe(false);
@@ -408,7 +408,7 @@ describe("campaign helpers", () => {
     expect(
       isMexicoCompany({
         locale: "es-AR",
-        slug: "arc-argentina",
+        slug: "argentina",
         paymentGateway: "PAGNOVO",
         publicPathPrefix: "/argentina",
       }),
@@ -416,7 +416,7 @@ describe("campaign helpers", () => {
     expect(
       isArgentinaCompany({
         locale: "es-AR",
-        slug: "arc-argentina",
+        slug: "argentina",
         paymentGateway: "PAGNOVO",
         publicPathPrefix: "/argentina",
       }),
@@ -424,7 +424,7 @@ describe("campaign helpers", () => {
     expect(
       isPagnovoCompany({
         locale: "es-AR",
-        slug: "arc-argentina",
+        slug: "argentina",
         paymentGateway: "PAGNOVO",
       }),
     ).toBe(true);
@@ -1615,11 +1615,11 @@ describe("Utmify routing payload", () => {
       createdAt: new Date("2026-10-03T12:00:00.000Z"),
       paidAt: new Date("2026-10-03T12:00:20.000Z"),
       soldLabel: "Food bank groceries",
-      attribution: { utmSource: "FB", utmCampaign: "ww usama church abo valor" },
+      attribution: { utmSource: "FB", utmCampaign: "ww sample campaign abo valor" },
     });
     expect(payload.products[0]?.name).toBe("Food bank groceries");
     expect(payload.trackingParameters.utm_source).toBe("FB");
-    expect(payload.trackingParameters.utm_campaign).toBe("ww usama church abo valor");
+    expect(payload.trackingParameters.utm_campaign).toBe("ww sample campaign abo valor");
   });
 
   it("labels a direct campaign visit with the campaign that was sold", () => {
@@ -1917,7 +1917,7 @@ describe("affiliate pixels", () => {
       "payment_intent_data",
     );
     expect(readFileSync("app/api/stripe/wallet-intent/route.ts", "utf8")).toContain(
-      "churchStripePaymentLabel",
+      "stripePaymentLabel",
     );
     expect(readFileSync("components/checkout/WalletPayButton.tsx", "utf8")).toContain(
       "/api/stripe/wallet-confirm",
@@ -1987,7 +1987,7 @@ describe("public site URLs", () => {
     expect(companyPublicPrefix({ locale: "es-MX", publicPathPrefix: null })).toBe(
       "/mexico",
     );
-    expect(companyPublicPrefix({ slug: "arc-mexico", publicPathPrefix: "" })).toBe(
+    expect(companyPublicPrefix({ slug: "mexico", publicPathPrefix: "" })).toBe(
       "/mexico",
     );
     expect(companyPublicPrefix({ locale: "en", publicPathPrefix: null })).toBe("");
@@ -1995,7 +1995,7 @@ describe("public site URLs", () => {
       companyPublicPrefix({ locale: "es-AR", publicPathPrefix: null }),
     ).toBe("/argentina");
     expect(
-      companyPublicPrefix({ slug: "arc-argentina", publicPathPrefix: "" }),
+      companyPublicPrefix({ slug: "argentina", publicPathPrefix: "" }),
     ).toBe("/argentina");
     expect(companyPublicPrefix({ locale: "es-MX", publicPathPrefix: null })).not.toBe(
       "/argentina",
@@ -2085,7 +2085,6 @@ describe("donation thank-you email", () => {
       receiptToken: "test-token",
     });
 
-    expect(message.church).toBe(true);
     expect(message.subject).toBe("Thank you for your gift");
     expect(message.receiptUrl).toBe(
       "https://giving.example.org/api/receipt?token=test-token",
@@ -2095,7 +2094,7 @@ describe("donation thank-you email", () => {
     expect(message.html).toContain("#163c2c");
     expect(message.html).toContain("#d4f07a");
     expect(message.html).toContain("Thank you, Gabriel Escobar!");
-    expect(message.html).not.toContain("lions-health-land-logo");
+    expect(message.html).not.toContain("third-party-logo");
     expect(message.html).not.toContain("PDF within 3 business days");
   });
 });
@@ -2225,15 +2224,15 @@ describe("pixel isolation", () => {
   it("sends paid orders with UTMIFY_API_TOKEN when Direct Team has no stored credential", () => {
     const previous = process.env.UTMIFY_API_TOKEN;
     try {
-      process.env.UTMIFY_API_TOKEN = "church-utmify-token";
-      expect(envUtmifyApiToken()).toBe("church-utmify-token");
+      process.env.UTMIFY_API_TOKEN = "sample-utmify-token";
+      expect(envUtmifyApiToken()).toBe("sample-utmify-token");
       expect(
         resolveDeliverableUtmifyToken({
           pageTokenEnc: null,
           affiliateTokenEnc: null,
           companyIsDefault: true,
         }),
-      ).toBe("church-utmify-token");
+      ).toBe("sample-utmify-token");
       expect(
         resolveDeliverableUtmifyToken({
           pageTokenEnc: null,
@@ -2307,45 +2306,25 @@ describe("pagnovo payer and status", () => {
   it("strips /mexico and /argentina in next.config instead of a TLS rewrite to localhost", () => {
     const nextConfig = readFileSync("next.config.ts", "utf8");
     const proxy = readFileSync("proxy.ts", "utf8");
-    const nginx = readFileSync("deploy/nginx-lionhealthland.conf", "utf8");
     expect(nextConfig).toContain('source: "/mexico/:path*"');
     expect(nextConfig).toContain('source: "/argentina/:path*"');
     expect(nextConfig).toContain('destination: "/:path*"');
     expect(proxy).not.toMatch(/NextResponse\.rewrite\(/);
     expect(proxy).toContain("PUBLIC_PREFIX_HEADER");
-    expect(nginx).toContain("location ^~ /mexico");
-    expect(nginx).toContain("location ^~ /argentina");
   });
 
-  it("routes Direct-Team join to crowdfunding, not Lions Health", () => {
-    const nginx = readFileSync("deploy/nginx-lionhealthland.conf", "utf8");
-    const join = nginx.slice(
-      nginx.indexOf("location = /join"),
-      nginx.indexOf("location = /api/join"),
-    );
-    const joinApi = nginx.slice(
-      nginx.indexOf("location = /api/join"),
-      nginx.indexOf("location = /manifest.webmanifest"),
-    );
-    expect(join).toContain("crowdfunding_public");
-    expect(join).not.toContain("lions_health");
-    expect(joinApi).toContain("crowdfunding_public");
-    expect(joinApi).not.toContain("lions_health");
+  it("proxies the public site through Nginx to the Node app", () => {
+    const nginx = readFileSync("deploy/nginx-ngo.conf", "utf8");
+    expect(nginx).toContain("upstream crowdfunding_public");
+    expect(nginx).toContain("proxy_pass http://crowdfunding_public");
+    expect(nginx).toContain("location = /robots.txt");
+    expect(nginx).toContain("location = /sitemap.xml");
   });
 
-  it("does not show the restart interstitial on paid campaign URLs", () => {
-    const nginx = readFileSync("deploy/nginx-lionhealthland.conf", "utf8");
-    const campaign = nginx.slice(nginx.indexOf("location ^~ /c/"));
-    const admin = nginx.slice(
-      nginx.indexOf("location ^~ /admin"),
-      nginx.indexOf("location = /login"),
-    );
-    expect(admin).not.toContain("giving-502");
-    expect(nginx.indexOf("error_page 502")).toBeGreaterThan(
-      nginx.indexOf("location ^~ /admin"),
-    );
-    expect(campaign).not.toContain("giving-502");
-    expect(nginx).toContain("location ^~ /c/");
+  it("does not show a restart interstitial from Nginx", () => {
+    const nginx = readFileSync("deploy/nginx-ngo.conf", "utf8");
+    expect(nginx).not.toContain("giving-502");
+    expect(nginx).not.toContain("error_page 502");
   });
 
   it("restarts crowdfunding only after confirming port 3001 is closed", () => {
@@ -2802,54 +2781,54 @@ describe("admin company desks and paid sales filters", () => {
   it("labels United States Stripe and México PagNovo as separate desks", () => {
     expect(
       isMexicoCompany({
-        slug: "arc-human-giving",
+        slug: "giving-site",
         locale: "en",
         paymentGateway: "STRIPE",
       }),
     ).toBe(false);
     expect(
       isMexicoCompany({
-        slug: "arc-mexico",
+        slug: "mexico",
         locale: "es-MX",
         paymentGateway: "PAGNOVO",
       }),
     ).toBe(true);
-    expect(companyDesk({ slug: "arc-human-giving", locale: "en" })).toEqual({
+    expect(companyDesk({ slug: "giving-site", locale: "en" })).toEqual({
       region: "United States",
       gateway: "Stripe",
       currency: "USD",
     });
-    expect(companyDesk({ slug: "arc-mexico", locale: "es-MX", paymentGateway: "PAGNOVO" })).toEqual({
+    expect(companyDesk({ slug: "mexico", locale: "es-MX", paymentGateway: "PAGNOVO" })).toEqual({
       region: "México",
       gateway: "PagNovo",
       currency: "MXN",
     });
-    expect(companyDeskLabel({ slug: "arc-mexico" })).toBe("México · PagNovo");
+    expect(companyDeskLabel({ slug: "mexico" })).toBe("México · PagNovo");
     expect(
       isMexicoCompany({
-        slug: "arc-argentina",
+        slug: "argentina",
         locale: "es-AR",
         paymentGateway: "PAGNOVO",
       }),
     ).toBe(false);
     expect(
-      companyDesk({ slug: "arc-argentina", locale: "es-AR", paymentGateway: "PAGNOVO" }),
+      companyDesk({ slug: "argentina", locale: "es-AR", paymentGateway: "PAGNOVO" }),
     ).toEqual({
       region: "Argentina",
       gateway: "PagNovo",
       currency: "ARS",
     });
-    expect(companyDeskLabel({ slug: "arc-argentina", locale: "es-AR" })).toBe(
+    expect(companyDeskLabel({ slug: "argentina", locale: "es-AR" })).toBe(
       "Argentina · PagNovo · ARS",
     );
-    expect(deskDirectTeamSlug({ slug: "arc-argentina", locale: "es-AR" })).toBe(
+    expect(deskDirectTeamSlug({ slug: "argentina", locale: "es-AR" })).toBe(
       "direct-team-argentina",
     );
-    expect(deskDirectTeamName({ slug: "arc-argentina" })).toBe("Direct Team Argentina");
-    expect(deskDirectTeamSlug({ slug: "arc-mexico", locale: "es-MX" })).toBe(
+    expect(deskDirectTeamName({ slug: "argentina" })).toBe("Direct Team Argentina");
+    expect(deskDirectTeamSlug({ slug: "mexico", locale: "es-MX" })).toBe(
       "direct-team-mexico",
     );
-    expect(deskDirectTeamSlug({ slug: "arc-human-giving", locale: "en" })).toBe(
+    expect(deskDirectTeamSlug({ slug: "giving-site", locale: "en" })).toBe(
       "direct-team",
     );
   });
@@ -2886,18 +2865,18 @@ describe("admin company desks and paid sales filters", () => {
     });
     expect(giftAmountCents({ amount: 3500, tipAmount: 500 })).toBe(3000);
     expect(tipAmountCents({ tipAmount: 500 })).toBe(500);
-    expect(hasChurchMissionTip({ tipAmount: 500 })).toBe(true);
-    expect(hasChurchMissionTip({ tipAmount: 0 })).toBe(false);
+    expect(hasMissionTip({ tipAmount: 500 })).toBe(true);
+    expect(hasMissionTip({ tipAmount: 0 })).toBe(false);
     expect(
-      resolvedChurchTipCents({
+      resolvedMissionTipCents({
         amount: 3500,
         tipAmount: 0,
-        intentTipAmount: CHURCH_MISSION_TIP_CENTS,
+        intentTipAmount: MISSION_TIP_CENTS,
         donationOptionAmount: 3000,
       }),
     ).toBe(500);
     expect(
-      resolvedChurchTipCents({
+      resolvedMissionTipCents({
         amount: 3000,
         tipAmount: 0,
         intentTipAmount: 0,
@@ -2905,7 +2884,7 @@ describe("admin company desks and paid sales filters", () => {
       }),
     ).toBe(500);
     expect(
-      resolvedChurchTipCents({
+      resolvedMissionTipCents({
         amount: 2500,
         tipAmount: 0,
         intentTipAmount: 0,
@@ -2913,7 +2892,7 @@ describe("admin company desks and paid sales filters", () => {
       }),
     ).toBe(0);
     expect(
-      resolvedChurchTipCents({
+      resolvedMissionTipCents({
         amount: 2800,
         tipAmount: 0,
         intentTipAmount: 500,
@@ -2921,7 +2900,7 @@ describe("admin company desks and paid sales filters", () => {
       }),
     ).toBe(500);
     expect(
-      resolvedChurchTipCents({
+      resolvedMissionTipCents({
         amount: 3000,
         tipAmount: 0,
         intentTipAmount: 500,
@@ -2929,7 +2908,7 @@ describe("admin company desks and paid sales filters", () => {
       }),
     ).toBe(0);
     expect(
-      resolvedChurchTipCents({
+      resolvedMissionTipCents({
         amount: 3000,
         tipAmount: 0,
         intentTipAmount: 0,
@@ -2938,7 +2917,7 @@ describe("admin company desks and paid sales filters", () => {
       }),
     ).toBe(500);
     expect(
-      resolvedChurchTipCents({
+      resolvedMissionTipCents({
         amount: 5000,
         tipAmount: 0,
         intentTipAmount: 0,
@@ -2947,7 +2926,7 @@ describe("admin company desks and paid sales filters", () => {
       }),
     ).toBe(0);
     expect(
-      resolvedChurchTipCents({
+      resolvedMissionTipCents({
         amount: 3000,
         tipAmount: 0,
         stripeTipAmount: 500,

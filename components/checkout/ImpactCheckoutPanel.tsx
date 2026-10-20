@@ -675,7 +675,7 @@ export function ImpactCheckoutPanel({
         </div>
         {totals.tipAmount > 0 ? (
           <div className="impact-donate-summary-row">
-            <span>{withBrand(messages.checkout.summaryTip, embedded ? "the Church" : TIP_BRAND)}</span>
+            <span>{withBrand(messages.checkout.summaryTip, embedded ? "this organization" : TIP_BRAND)}</span>
             <span>{formatExact(totals.tipAmount, currency, locale)}</span>
           </div>
         ) : null}

@@ -2,7 +2,7 @@
  * Clocks at the base of the admin shell.
  *
  * ADMIN_OPERATION_CLOCK is this operation's own city. Sales, letters, and the
- * globe keep using it. Church already is Los Angeles, so the shell shows that
+ * globe keep using it. This desk uses Los Angeles, so the shell shows that
  * clock once, under the Meta and Utmify name.
  */
 export type AdminDashboardClock = {

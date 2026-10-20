@@ -26,9 +26,7 @@ import type { z } from "zod";
 type EmbeddedCheckoutInput = z.infer<typeof embeddedCheckoutSchema>;
 
 export const CHECKOUT_ITEM_NAME = GATEWAY_FALLBACK_NAME;
-export const CHURCH_CHECKOUT_ITEM_NAME = CHECKOUT_ITEM_NAME;
 export const MISSION_TIP_NAME = "Mission tip";
-export const CHURCH_MISSION_TIP_NAME = MISSION_TIP_NAME;
 
 /**
  * Product names sent to the gateway live in lib/gateway-product-names.ts, one
@@ -153,7 +151,7 @@ export function gatewayProductLabel(
   return template.replaceAll("{amount}", amount);
 }
 
-export function churchTipCentsFromStripeLineItems(
+export function missionTipCentsFromStripeLineItems(
   items: Array<{
     description?: string | null;
     amount_total?: number | null;
@@ -184,12 +182,12 @@ export function checkoutSessionIdFromPaymentIntent(paymentIntent: object) {
   return null;
 }
 
-export function churchStripePaymentLabel(label: string | null | undefined) {
+export function stripePaymentLabel(label: string | null | undefined) {
   const value = label?.trim();
   return (value || CHECKOUT_ITEM_NAME).slice(0, 1000);
 }
 
-export function churchStripeCheckoutMetadata(input: {
+export function stripeCheckoutMetadata(input: {
   kind: string;
   checkoutIntentId: string;
   affiliatePageId: string;
@@ -203,7 +201,7 @@ export function churchStripeCheckoutMetadata(input: {
   };
 }
 
-export async function startChurchDonation(
+export async function startEmbeddedDonation(
   request: NextRequest,
   parsed: EmbeddedCheckoutInput,
 ) {

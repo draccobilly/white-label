@@ -33,6 +33,33 @@ O valor exibido na página da campanha **não** é `Campaign.currentAmount`. A f
 
 Não mude essa fórmula a menos que o dono peça.
 
+## Mapa do projeto
+
+Esta pasta é o produto inteiro. Não há pasta irmã, remoto antigo, nem outra operação para copiar.
+
+| Pasta | Função |
+| --- | --- |
+| `app/` | rotas Next.js: site público, `/admin`, `/portal`, `/c/...` campanha, `/api` |
+| `components/campaign` | página pública da campanha (layouts Classic e Impact) |
+| `components/checkout` | Stripe embutido, PayPal, carteira, gorjeta |
+| `components/admin` | painel |
+| `components/portal` | organizador |
+| `components/public` | home institucional, header, footer, páginas de texto |
+| `lib/` | dinheiro, webhooks, Utmify, auth, i18n, e-mail |
+| `prisma/` | schema e `seed.ts` (empresa vazia com `APP_NAME`) |
+| `deploy/` | Nginx, bootstrap da VPS, `apply-ngo-vps.sh` |
+| `tests/unit` | vitest |
+
+Fluxos que o agente precisa conhecer:
+
+1. Doador abre `/c/[campaignSlug]/[affiliateSlug]`. O raised público vem de `lib/campaign-accounting.ts`.
+2. Checkout chama `POST /api/stripe/embedded-session` (ou PayPal). O intent nasce em `lib/embedded-checkout.ts` (`startEmbeddedDonation`).
+3. Stripe avisa `POST /api/webhooks/stripe`. O pagamento vira venda em `lib/record-paid-session.ts`. Gorjeta sai dos line items (`Mission tip`) ou do PaymentIntent.
+4. Admin entra em `/admin` com magic link (`ADMIN_EMAIL`) ou senha. Organizador entra em `/portal`.
+5. Publicar: push neste remoto, depois `bash deploy/apply-ngo-vps.sh` nesta VPS.
+
+Textos e marca desta organização: Admin → Settings, `lib/i18n/en.ts`, `lib/donation-letter-config.ts`. Não restaure nomes, fotos, EIN, domínio ou chave de outro site.
+
 ## 1. Repositório GitHub
 
 Neste computador o git já foi iniciado. Não há histórico antigo.

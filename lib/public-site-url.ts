@@ -71,10 +71,10 @@ export function companyPublicPrefix(company: {
   if (company.siteMode === "INSTITUTIONAL") return "";
   const prefix = normalizePublicPrefix(company.publicPathPrefix);
   if (prefix) return prefix;
-  if (company.locale === "es-MX" || company.slug === "arc-mexico") {
+  if (company.locale === "es-MX" || company.slug === "mexico") {
     return MEXICO_PUBLIC_PREFIX;
   }
-  if (company.locale === "es-AR" || company.slug === "arc-argentina") {
+  if (company.locale === "es-AR" || company.slug === "argentina") {
     return ARGENTINA_PUBLIC_PREFIX;
   }
   return "";

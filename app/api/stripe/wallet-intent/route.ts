@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  churchStripeCheckoutMetadata,
-  churchStripePaymentLabel,
-  startChurchDonation,
+  stripeCheckoutMetadata,
+  stripePaymentLabel,
+  startEmbeddedDonation,
   withPendingCheckoutCookie,
 } from "@/lib/embedded-checkout";
 import {
@@ -33,12 +33,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid checkout request" }, { status: 400 });
     }
 
-    const started = await startChurchDonation(request, parsed.data);
+    const started = await startEmbeddedDonation(request, parsed.data);
     if (!started.ok) {
       return NextResponse.json({ error: started.error }, { status: started.status });
     }
 
-    const metadata = churchStripeCheckoutMetadata({
+    const metadata = stripeCheckoutMetadata({
       kind: WALLET_CHECKOUT_KIND,
       checkoutIntentId: started.intent.id,
       affiliatePageId: started.page.id,
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     const paymentIntent = await getStripe().paymentIntents.create({
       amount: started.amount,
       currency: started.page.campaign.currency.toLowerCase(),
-      description: churchStripePaymentLabel(started.intent.gatewayLabel),
+      description: stripePaymentLabel(started.intent.gatewayLabel),
       automatic_payment_methods: { enabled: true, allow_redirects: "never" },
       metadata,
     });

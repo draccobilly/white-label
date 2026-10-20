@@ -26,7 +26,7 @@ export function publicLogoUrl(company: {
   return company.logoUrl ?? null;
 }
 
-export const LOCAL_CHURCH_FAVICON = "/admin-icon-192.png";
+export const LOCAL_FAVICON = "/admin-icon-192.png";
 
 export function publicFaviconUrl(company: {
   faviconUrl?: string | null;
@@ -34,6 +34,6 @@ export function publicFaviconUrl(company: {
 }) {
   return (
     company.faviconUrl?.trim() ||
-    LOCAL_CHURCH_FAVICON
+    LOCAL_FAVICON
   );
 }

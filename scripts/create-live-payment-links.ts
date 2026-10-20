@@ -7,19 +7,19 @@ const AMOUNTS_CENTS = [
   2500, 5000, 6000, 7000, 8000, 9000, 10000, 12000, 15000, 16000, 18000, 20000,
 ] as const;
 
-const EBOOK_BY_CENTS: Record<number, { id: string; name: string }> = {
-  2500: { id: "essential-recipes", name: "Essential Recipes" },
-  5000: { id: "seven-day-detox", name: "7-Day Detox" },
-  6000: { id: "energy-boost", name: "Energy Boost" },
-  7000: { id: "sleep-nutrition", name: "Sleep Nutrition" },
-  8000: { id: "personalized-wellness-report", name: "Personalized Wellness Report" },
-  9000: { id: "weight-management", name: "Weight Management" },
-  10000: { id: "gut-health", name: "Gut Health" },
-  12000: { id: "ninety-day-transformation", name: "90-Day Transformation" },
-  15000: { id: "async-audit", name: "Async Audit" },
-  16000: { id: "executive-routine", name: "Executive Routine" },
-  18000: { id: "live-consultation", name: "Live Consultation" },
-  20000: { id: "vip-package", name: "VIP Package" },
+const GIFT_BY_CENTS: Record<number, { id: string; name: string }> = {
+  2500: { id: "gift-25", name: "Gift $25" },
+  5000: { id: "gift-50", name: "Gift $50" },
+  6000: { id: "gift-60", name: "Gift $60" },
+  7000: { id: "gift-70", name: "Gift $70" },
+  8000: { id: "gift-80", name: "Gift $80" },
+  9000: { id: "gift-90", name: "Gift $90" },
+  10000: { id: "gift-100", name: "Gift $100" },
+  12000: { id: "gift-120", name: "Gift $120" },
+  15000: { id: "gift-150", name: "Gift $150" },
+  16000: { id: "gift-160", name: "Gift $160" },
+  18000: { id: "gift-180", name: "Gift $180" },
+  20000: { id: "gift-200", name: "Gift $200" },
 };
 
 function dollars(cents: number) {
@@ -27,11 +27,11 @@ function dollars(cents: number) {
 }
 
 async function findOrCreatePrice(stripe: Stripe, cents: number) {
-  const ebook = EBOOK_BY_CENTS[cents];
-  if (!ebook) throw new Error(`No e-book mapped for ${cents}`);
+  const gift = GIFT_BY_CENTS[cents];
+  if (!gift) throw new Error(`No gift mapped for ${cents}`);
 
   const existing = await stripe.prices.search({
-    query: `active:'true' AND metadata['lions_amount_cents']:'${cents}'`,
+    query: `active:'true' AND metadata['gift_amount_cents']:'${cents}'`,
     limit: 1,
   });
   if (existing.data[0]) return existing.data[0];
@@ -39,8 +39,8 @@ async function findOrCreatePrice(stripe: Stripe, cents: number) {
   const product = await stripe.products.create({
     name: "Web Support",
     metadata: {
-      lions_plan_id: ebook.id,
-      lions_amount_cents: String(cents),
+      gift_plan_id: gift.id,
+      gift_amount_cents: String(cents),
     },
   });
   return stripe.prices.create({
@@ -48,8 +48,8 @@ async function findOrCreatePrice(stripe: Stripe, cents: number) {
     currency: "usd",
     unit_amount: cents,
     metadata: {
-      lions_plan_id: ebook.id,
-      lions_amount_cents: String(cents),
+      gift_plan_id: gift.id,
+      gift_amount_cents: String(cents),
     },
   });
 }
@@ -63,7 +63,7 @@ async function findOrCreatePaymentLink(stripe: Stripe, priceId: string, cents: n
       active: true,
     });
     for (const link of list.data) {
-      if (link.metadata?.lions_amount_cents === String(cents)) return link;
+      if (link.metadata?.gift_amount_cents === String(cents)) return link;
     }
     if (!list.has_more || list.data.length === 0) break;
     startingAfter = list.data.at(-1)?.id;
@@ -73,8 +73,8 @@ async function findOrCreatePaymentLink(stripe: Stripe, priceId: string, cents: n
     line_items: [{ price: priceId, quantity: 1 }],
     after_completion: { type: "hosted_confirmation" },
     metadata: {
-      lions_amount_cents: String(cents),
-      lions_plan_id: EBOOK_BY_CENTS[cents]?.id ?? "",
+      gift_amount_cents: String(cents),
+      gift_plan_id: GIFT_BY_CENTS[cents]?.id ?? "",
     },
   });
 }
@@ -103,7 +103,7 @@ async function main() {
       cents,
       url: link.url,
       plink: link.id,
-      planId: EBOOK_BY_CENTS[cents]?.id ?? "",
+      planId: GIFT_BY_CENTS[cents]?.id ?? "",
     });
     console.log(`${dollars(cents)}\t${link.id}\t${link.url}`);
   }
@@ -129,7 +129,7 @@ async function main() {
   }
 
   console.log(`\nUpdated ${updated} campaign PaymentLink row(s).`);
-  console.log("\nLIONSHEALTH lib/plans.ts stripePaymentLink values:");
+  console.log("\nPayment Link URLs:");
   for (const item of created) {
     console.log(`  ${item.planId}: ${item.url}`);
   }

@@ -4,7 +4,6 @@ import { REPORTING_TIME_ZONE } from "@/lib/date-range";
 export type ThankYouLocale = "en" | "es-MX" | "es-AR";
 
 export type EmailBrandTheme = {
-  church: boolean;
   name: string;
   logo: string;
   logoWidth: number;
@@ -39,7 +38,6 @@ function siteBrand(): EmailBrandTheme {
   const customLogo = process.env.EMAIL_LOGO_URL?.trim();
   const logo = customLogo || `${origin}/admin-icon-192.png`;
   return {
-    church: true,
     name,
     logo,
     logoWidth: 210,
@@ -134,31 +132,31 @@ export function buildDonationThankYouEmail(input: DonationThankYouInput) {
   const institutional = Boolean(input.institutional || input.shortDonationPath);
   const brand = thankYouEmailBrand(institutional);
   const spanish = input.locale === "es-MX" || input.locale === "es-AR";
-  const originHint = emailPublicSiteUrl(brand.church);
+  const originHint = emailPublicSiteUrl(institutional);
   const campaignPageUrl = emailAbsoluteUrl(
     input.shortDonationPath
       ? `/c/${input.campaignSlug}`
       : `/c/${input.campaignSlug}/${input.affiliateSlug}`,
     input.pathPrefix,
-    brand.church,
+    institutional,
   );
   const campaignUrl = `${campaignPageUrl}#comments`;
   const refundUrl = emailAbsoluteUrl(
     `/refund?code=${encodeURIComponent(input.trackingCode)}`,
     input.pathPrefix,
-    brand.church,
+    institutional,
   );
   const unsubscribeUrl = `mailto:${brand.refundInbox}?subject=${encodeURIComponent(`Unsubscribe ${input.trackingCode}`)}`;
   const receiptUrl = input.receiptToken
     ? emailAbsoluteUrl(
         `/api/receipt?token=${encodeURIComponent(input.receiptToken)}`,
         null,
-        brand.church,
+        institutional,
       )
     : emailAbsoluteUrl(
         `/track-your-donation?code=${encodeURIComponent(input.trackingCode)}`,
         input.pathPrefix,
-        brand.church,
+        institutional,
       );
   const donorName =
     input.customerName && input.customerName !== "Anonymous"
@@ -184,87 +182,47 @@ export function buildDonationThankYouEmail(input: DonationThankYouInput) {
     : null;
   const campaignLine = input.campaignTitle?.trim() || null;
 
-  const copy = brand.church
-    ? spanish
-      ? {
-          subject: "Gracias por tu ofrenda",
-          preheader: "Tu ofrenda fue recibida. Que Dios te bendiga.",
-          heroSub: "Tu ofrenda fue recibida.",
-          body1: campaignLine
-            ? `Confirmamos tu donación a ${campaignLine}. Puedes ver tu recibo, seguir el avance o dejar un mensaje de aliento.`
-            : "Confirmamos tu donación. Puedes ver tu recibo, seguir el avance o dejar un mensaje de aliento.",
-          body2:
-            "Tu recibo seguro estará listo 24 horas después de la confirmación del pago.",
-          amount: "Monto",
-          tracking: "Código de rastreo",
-          cta: "Ver tu recibo",
-          commentPrompt: "¿Quieres compartir una palabra de aliento?",
-          commentLink: "Deja un comentario",
-          refundLead: "¿Necesitas un reembolso?",
-          refundLink: "Puedes solicitarlo aquí",
-          refundNote: "Siempre es más rápido a través de nuestro formulario.",
-          spam: "Nunca te enviaremos correos de spam. Si quieres, puedes darte de baja aquí.",
-          textBigger: "Tu ofrenda ya es parte de esta misión.",
-        }
-      : {
-          subject: "Thank you for your gift",
-          preheader: "Your gift was received. You are a blessing.",
-          heroSub: "Your gift was received.",
-          body1: campaignLine
-            ? `Your donation to ${campaignLine} has been confirmed. You can view your receipt, follow the campaign, or leave a word of encouragement.`
-            : "Your donation has been confirmed. You can view your receipt, follow the campaign, or leave a word of encouragement.",
-          body2:
-            "Your secure receipt will be ready 24 hours after payment confirmation.",
-          amount: "Amount",
-          tracking: "Tracking code",
-          cta: "View your receipt",
-          commentPrompt: "Want to share a word of encouragement?",
-          commentLink: "Leave a comment",
-          refundLead: "Looking for a refund?",
-          refundLink: "You can request one here",
-          refundNote: "It’s always faster through our facilitated form.",
-          spam: "We will never send you spam e-mails. You can unsubscribe at any time.",
-          textBigger: "Your gift is already part of this mission.",
-        }
-    : spanish
-      ? {
-          subject: "Ya eres parte de algo más grande",
-          preheader: "Tu pago se confirmó con éxito.",
-          heroSub: "Ya eres parte de algo más grande.",
-          body1:
-            "Tu pago se confirmó. Puedes ver tu recibo, seguir el avance o dejar un mensaje en la página.",
-          body2:
-            "Como todavía estamos procesando tu solicitud, el PDF de respaldo puede tardar hasta 3 días hábiles.",
-          amount: "Monto",
-          tracking: "Código de rastreo",
-          cta: "Ver tu recibo",
-          commentPrompt: "¿Quieres compartir un poco de aliento?",
-          commentLink: "Deja un comentario",
-          refundLead: "¿Buscas un reembolso?",
-          refundLink: "Puedes solicitarlo aquí",
-          refundNote: "Siempre es más rápido a través de nuestro formulario.",
-          spam: "Nunca te vamos a mandar spam. Si quieres, puedes darte de baja aquí.",
-          textBigger: "Ya eres parte de algo más grande.",
-        }
-      : {
-          subject: "Thank you for your gift",
-          preheader: "Your payment was successfully confirmed.",
-          heroSub: "You're now part of something bigger.",
-          body1:
-            "Your payment was successfully confirmed. You can view your receipt, follow its progress, or leave a warm message on our page.",
-          body2:
-            "As we are still processing your request, you may receive your supporting PDF within 3 business days.",
-          amount: "Amount",
-          tracking: "Tracking code",
-          cta: "View your receipt",
-          commentPrompt: "Want to share some encouragement?",
-          commentLink: "Leave a warm comment",
-          refundLead: "Looking for a refund?",
-          refundLink: "You can quickly request one here",
-          refundNote: "It’s always faster through our facilitated form.",
-          spam: "We will never send you spam e-mails. However, you can always opt to unsubscribe from our e-mails.",
-          textBigger: "You're now part of something bigger.",
-        };
+  const copy = spanish
+    ? {
+        subject: "Gracias por tu donación",
+        preheader: "Tu donación fue recibida.",
+        heroSub: "Tu donación fue recibida.",
+        body1: campaignLine
+          ? `Confirmamos tu donación a ${campaignLine}. Puedes ver tu recibo, seguir el avance o dejar un mensaje de aliento.`
+          : "Confirmamos tu donación. Puedes ver tu recibo, seguir el avance o dejar un mensaje de aliento.",
+        body2:
+          "Tu recibo seguro estará listo 24 horas después de la confirmación del pago.",
+        amount: "Monto",
+        tracking: "Código de rastreo",
+        cta: "Ver tu recibo",
+        commentPrompt: "¿Quieres compartir una palabra de aliento?",
+        commentLink: "Deja un comentario",
+        refundLead: "¿Necesitas un reembolso?",
+        refundLink: "Puedes solicitarlo aquí",
+        refundNote: "Siempre es más rápido a través de nuestro formulario.",
+        spam: "Nunca te enviaremos correos de spam. Si quieres, puedes darte de baja aquí.",
+        textBigger: "Tu donación ya es parte de esta misión.",
+      }
+    : {
+        subject: "Thank you for your gift",
+        preheader: "Your gift was received.",
+        heroSub: "Your gift was received.",
+        body1: campaignLine
+          ? `Your donation to ${campaignLine} has been confirmed. You can view your receipt, follow the campaign, or leave a word of encouragement.`
+          : "Your donation has been confirmed. You can view your receipt, follow the campaign, or leave a word of encouragement.",
+        body2:
+          "Your secure receipt will be ready 24 hours after payment confirmation.",
+        amount: "Amount",
+        tracking: "Tracking code",
+        cta: "View your receipt",
+        commentPrompt: "Want to share a word of encouragement?",
+        commentLink: "Leave a comment",
+        refundLead: "Looking for a refund?",
+        refundLink: "You can request one here",
+        refundNote: "It’s always faster through our facilitated form.",
+        spam: "We will never send you spam e-mails. You can unsubscribe at any time.",
+        textBigger: "Your gift is already part of this mission.",
+      };
 
   // The letter and everything about it is in English only.
   const taxLetterNote = input.taxLetterAttached
@@ -360,7 +318,6 @@ export function buildDonationThankYouEmail(input: DonationThankYouInput) {
     campaignUrl,
     refundUrl,
     origin: originHint,
-    church: brand.church,
     from: brand.sender,
   };
 }

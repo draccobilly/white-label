@@ -21,9 +21,9 @@ import { ensureOperatorAffiliate, ownAffiliateSales } from "@/lib/operator-affil
 import { isInstitutionalSiteMode } from "@/lib/site-mode";
 import {
   giftAmountCents,
-  hasChurchMissionTip,
+  hasMissionTip,
   paidLiveSalesWhere,
-  resolvedChurchTipCents,
+  resolvedMissionTipCents,
   tipAmountCents,
 } from "@/lib/sale-filters";
 import { companyDesk } from "@/lib/company-desk";
@@ -188,15 +188,15 @@ export default async function SalesPage({
       })
     : [];
 
-  const inferChurchTickets = isInstitutionalSiteMode(company.siteMode);
+  const inferStandardTickets = isInstitutionalSiteMode(company.siteMode);
   const sales = rawSales.map((sale) => {
     const ticketAmounts = sale.campaign.options.map((option) => option.amount);
-    const tipAmount = resolvedChurchTipCents({
+    const tipAmount = resolvedMissionTipCents({
       amount: sale.amount,
       tipAmount: sale.tipAmount,
       intentTipAmount: sale.checkoutIntent?.tipAmount,
       donationOptionAmount: sale.checkoutIntent?.donationOption?.amount,
-      campaignOptionAmounts: inferChurchTickets
+      campaignOptionAmounts: inferStandardTickets
         ? ticketAmounts.length
           ? ticketAmounts
           : [...STANDARD_DONATION_AMOUNTS]
@@ -218,7 +218,7 @@ export default async function SalesPage({
     );
   }
   const volumeMetric = tipsView ? tipAmountCents : giftAmountCents;
-  const periodSales = tipsView ? sales.filter(hasChurchMissionTip) : sales;
+  const periodSales = tipsView ? sales.filter(hasMissionTip) : sales;
   const periodGateways = sortGateways(periodSales.map((sale) => normalizeGateway(sale.gateway)));
   const visibleSales = gatewayFilter
     ? periodSales.filter((sale) => normalizeGateway(sale.gateway) === gatewayFilter)
@@ -518,7 +518,7 @@ export default async function SalesPage({
                   note={
                     tipsView
                       ? "Optional $5 mission tip"
-                      : hasChurchMissionTip(sale)
+                      : hasMissionTip(sale)
                         ? "Also gave a $5 mission tip"
                         : null
                   }

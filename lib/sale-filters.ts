@@ -22,9 +22,9 @@ export function paidLiveSalesWhere(companyId: string) {
   };
 }
 
-export const CHURCH_MISSION_TIP_CENTS = 500;
+export const MISSION_TIP_CENTS = 500;
 
-export function resolvedChurchTipCents(sale: {
+export function resolvedMissionTipCents(sale: {
   amount: number;
   tipAmount?: number | null;
   intentTipAmount?: number | null;
@@ -41,9 +41,9 @@ export function resolvedChurchTipCents(sale: {
   }
   if (
     option != null &&
-    sale.amount - option === CHURCH_MISSION_TIP_CENTS
+    sale.amount - option === MISSION_TIP_CENTS
   ) {
-    return CHURCH_MISSION_TIP_CENTS;
+    return MISSION_TIP_CENTS;
   }
   const fromIntent = Math.max(0, sale.intentTipAmount ?? 0);
   if (fromIntent > 0 && sale.amount >= fromIntent) {
@@ -51,9 +51,9 @@ export function resolvedChurchTipCents(sale: {
   }
   const tickets = sale.campaignOptionAmounts ?? [];
   if (tickets.length) {
-    const gift = sale.amount - CHURCH_MISSION_TIP_CENTS;
+    const gift = sale.amount - MISSION_TIP_CENTS;
     if (tickets.includes(gift) && !tickets.includes(sale.amount)) {
-      return CHURCH_MISSION_TIP_CENTS;
+      return MISSION_TIP_CENTS;
     }
   }
   return 0;
@@ -67,6 +67,6 @@ export function tipAmountCents(sale: { tipAmount?: number | null }) {
   return Math.max(0, sale.tipAmount ?? 0);
 }
 
-export function hasChurchMissionTip(sale: { tipAmount?: number | null }) {
+export function hasMissionTip(sale: { tipAmount?: number | null }) {
   return tipAmountCents(sale) > 0;
 }

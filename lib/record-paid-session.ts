@@ -15,11 +15,11 @@ import { markAutomaticLetterSent, prepareAutomaticLetter } from "@/lib/donation-
 import { shouldHideComment } from "@/lib/moderation";
 import { formatMoney } from "@/lib/utils";
 import { sha256Hex } from "@/lib/crypto";
-import { resolvedChurchTipCents } from "@/lib/sale-filters";
+import { resolvedMissionTipCents } from "@/lib/sale-filters";
 import { STANDARD_DONATION_AMOUNTS } from "@/lib/donation-ticket";
 import {
   checkoutSessionIdFromPaymentIntent,
-  churchTipCentsFromStripeLineItems,
+  missionTipCentsFromStripeLineItems,
 } from "@/lib/embedded-checkout";
 
 export function sessionPaymentIntentId(session: Stripe.Checkout.Session) {
@@ -334,7 +334,7 @@ type PaidDonationPage = {
   };
 };
 
-function churchTipInput(
+function missionTipInput(
   input: {
     intent: {
       tipAmount?: number;
@@ -409,7 +409,7 @@ export async function recordPaidDonation(
     where: { checkoutIntentId: input.intent.id },
   });
   if (alreadyPaid?.status === SaleStatus.PAID) {
-    const resolvedTip = resolvedChurchTipCents(churchTipInput(input, alreadyPaid));
+    const resolvedTip = resolvedMissionTipCents(missionTipInput(input, alreadyPaid));
     const sale =
       resolvedTip > 0 && alreadyPaid.tipAmount === 0
         ? await tx.sale.update({
@@ -428,7 +428,7 @@ export async function recordPaidDonation(
     : new Date();
   const trackingCode = input.intent.sale?.trackingCode ?? generateTrackingCode();
   const publicName = input.intent.hideName ? "Anonymous" : input.customerName;
-  const tipAmount = resolvedChurchTipCents(churchTipInput(input, { amount: input.amount, tipAmount: 0 }));
+  const tipAmount = resolvedMissionTipCents(missionTipInput(input, { amount: input.amount, tipAmount: 0 }));
   const sale = await tx.sale.upsert({
     where: { checkoutIntentId: input.intent.id },
     update: {
@@ -833,7 +833,7 @@ export async function recordPaidCheckoutSession(
     "Anonymous";
   const charged =
     session.amount_total ?? paymentLink?.donationOption.amount ?? intent.amount;
-  const stripeTip = churchTipCentsFromStripeLineItems(session.line_items?.data ?? []);
+  const stripeTip = missionTipCentsFromStripeLineItems(session.line_items?.data ?? []);
   return recordPaidDonation(tx, {
     intent,
     page,

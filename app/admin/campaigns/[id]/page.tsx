@@ -203,7 +203,7 @@ export default async function CampaignEditPage({
             : argentinaDesk
               ? "This Argentina company uses Pagnovo. Amounts go live without Stripe Payment Links. Donors pay by bank transfer to a CVU."
               : embeddedStripe
-              ? "Church checkout charges through the Stripe API on this page. Amounts go live without Payment Links."
+              ? "Embedded checkout charges through the Stripe API on this page. Amounts go live without Payment Links."
               : `This page is shared by all ${campaign.pages.length} affiliates. Only Stripe Payment Links are unique.`
         }
         actions={

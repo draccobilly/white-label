@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  churchStripePaymentLabel,
-  startChurchDonation,
+  stripePaymentLabel,
+  startEmbeddedDonation,
   withPendingCheckoutCookie,
 } from "@/lib/embedded-checkout";
 import { createPaypalOrder, PAYPAL_BUTTON_ENABLED, paypalConfigured, paypalReturnUrl } from "@/lib/paypal";
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid checkout request" }, { status: 400 });
     }
-    const started = await startChurchDonation(request, parsed.data);
+    const started = await startEmbeddedDonation(request, parsed.data);
     if (!started.ok) {
       return NextResponse.json({ error: started.error }, { status: started.status });
     }
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       checkoutIntentId: started.intent.id,
       amountCents: started.amount,
       currency: started.page.campaign.currency,
-      description: churchStripePaymentLabel(started.intent.gatewayLabel),
+      description: stripePaymentLabel(started.intent.gatewayLabel),
       brandName: started.page.campaign.company?.siteName || "Donation",
       returnUrl: paypalReturnUrl(parsed.data.returnUrl, [
         started.origin,

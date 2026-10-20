@@ -418,13 +418,13 @@ export const esMX: Messages = {
     charitySectionTitle: "Organización de bien público registrada",
     charitySectionLead:
       "Cada recaudación de este sitio la publica esta organización. El EIN, la dirección postal y los documentos legales quedan a la vista para que puedas verificar a quién donas.",
-    churchKicker: "La organización",
-    churchTitle: "Recaudaciones verificadas, publicadas en público.",
-    churchLead:
+    orgKicker: "La organización",
+    orgTitle: "Recaudaciones verificadas, publicadas en público.",
+    orgLead:
       "This organization publishes verified public fundraisers. Replace this text with your own mission.",
-    churchP1:
+    orgP1:
       "A public fundraiser on this site is a story, a goal, and a receipt. Pages are reviewed before they go live.",
-    churchP2:
+    orgP2:
       "Al donar aquí, el regalo es único, con recibo, y queda atribuido a una recaudación verificada.",
     verseButton: "Verse of the day",
     verseAnother: "Another verse",

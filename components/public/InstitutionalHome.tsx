@@ -11,11 +11,11 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import { ChurchMission } from "@/components/public/ChurchMission";
+import { SiteMission } from "@/components/public/SiteMission";
 import { HomeDonateSection } from "@/components/public/HomeDonateSection";
 import { HomeFaq } from "@/components/public/HomeFaq";
 import { paypalPublicClientId } from "@/lib/paypal";
-import "./church-home.css";
+import "./institutional-home.css";
 import { ImpactCampaignGrid } from "@/components/public/ImpactCampaignGrid";
 import { ProgramsInAction } from "@/components/public/ProgramsInAction";
 import type { PublicSitePost } from "@/lib/site-posts";
@@ -156,7 +156,7 @@ export function InstitutionalHome({
         </div>
       </section>
 
-      <section className="ch-causes" id="causas" aria-labelledby="ch-cause-grid-heading">
+      <section className="ih-causes" id="causas" aria-labelledby="ih-cause-grid-heading">
         <div className="shell">
           <HomeDonateSection
             lang={chrome.locale?.toLowerCase().startsWith("es") ? "es" : "en"}
@@ -165,12 +165,12 @@ export function InstitutionalHome({
         </div>
       </section>
 
-      <ChurchMission
-        kicker={site.churchKicker}
-        title={site.churchTitle}
-        lead={site.churchLead}
-        p1={site.churchP1}
-        p2={site.churchP2}
+      <SiteMission
+        kicker={site.orgKicker}
+        title={site.orgTitle}
+        lead={site.orgLead}
+        p1={site.orgP1}
+        p2={site.orgP2}
         verseButton={site.verseButton}
         verseAnother={site.verseAnother}
       />

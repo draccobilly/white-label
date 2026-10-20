@@ -5,8 +5,8 @@ alwaysApply: true
 
 # First prompt
 
-Read `AGENTS.md` before editing, deploying, or answering how to go live.
+Read `AGENTS.md` before editing, deploying, or answering how to go live. That file is the full product guide: architecture, GitHub, VPS, DNS, keys, and deploy.
 
-This folder is a white-label donation storefront. Do not copy brand, campaigns, databases, Stripe, PayPal, Utmify, or `.env` from another operation. Do not restore names, EINs, domains, IPs, or photos that were stripped from this clone.
+This folder is a standalone white-label donation storefront. There is no sibling repo. Do not copy brand, campaigns, databases, Stripe, PayPal, Utmify, or `.env` from another operation. Do not restore names, EINs, domains, IPs, or photos that were stripped from this clone.
 
 Publish with `bash deploy/apply-ngo-vps.sh` on this organization's VPS after pushing to this organization's private GitHub remote. Secrets live only in `/var/www/crowdfunding/.env` on that VPS (`nano .env`).

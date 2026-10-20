@@ -79,10 +79,10 @@ describe("embedded stripe checkout", () => {
   it("sends one of this operation's own product names, tied to the cause, not the campaign title", async () => {
     const { formatMoney } = await import("@/lib/utils");
     const {
-      CHURCH_CHECKOUT_ITEM_NAME,
+      CHECKOUT_ITEM_NAME,
       GATEWAY_GENERAL_GROUP_KEY,
       GATEWAY_PRODUCT_TEMPLATES,
-      churchStripePaymentLabel,
+      stripePaymentLabel,
       gatewayProductGroup,
       gatewayProductLabel,
     } = await import("@/lib/embedded-checkout");
@@ -95,21 +95,21 @@ describe("embedded stripe checkout", () => {
     // The five names every operation once shared. No gateway account may send them again.
     const legacyShared = [
       "Pack of {amount} of food & home supplements",
-      "Help the church with {amount} to keep its international missionary program",
+      "Help the organization with {amount} to keep its international program",
       "Supply {amount} of direct help for affected families",
       "Help these humble families with {amount} to overcome their hardships",
       "Give {amount} of food and home supplies to families in need",
     ].map((template) => template.toLowerCase());
     for (const name of normalized) expect(legacyShared).not.toContain(name);
-    expect(CHURCH_CHECKOUT_ITEM_NAME).not.toBe("Your help makes the difference");
-    expect(normalized).not.toContain(CHURCH_CHECKOUT_ITEM_NAME.toLowerCase());
+    expect(CHECKOUT_ITEM_NAME).not.toBe("Your help makes the difference");
+    expect(normalized).not.toContain(CHECKOUT_ITEM_NAME.toLowerCase());
     const bigAmount = formatMoney(100_000, "USD");
     for (const template of GATEWAY_PRODUCT_TEMPLATES) {
       expect(template.split("{amount}")).toHaveLength(2);
       // PayPal cuts the purchase unit description at 127 characters, PagNovo at 120.
       expect(template.replaceAll("{amount}", bigAmount).length).toBeLessThanOrEqual(120);
     }
-    expect(churchStripePaymentLabel("   ")).toBe(CHURCH_CHECKOUT_ITEM_NAME);
+    expect(stripePaymentLabel("   ")).toBe(CHECKOUT_ITEM_NAME);
 
     // Every cause has its own list, and a donation to that cause draws only from it.
     expect(new Set(GATEWAY_PRODUCT_GROUPS.map((group) => group.key)).size).toBe(
@@ -133,7 +133,7 @@ describe("embedded stripe checkout", () => {
         const label = gatewayProductLabel(2500, "USD", { ...context, index });
         expect(label).toBe(group.templates[index].replaceAll("{amount}", amount));
         expect(label).toContain(amount);
-        expect(churchStripePaymentLabel(label)).toBe(label);
+        expect(stripePaymentLabel(label)).toBe(label);
       }
       // Deck rotation inside the cause: two decks of draws cover every name, none more
       // than three times, never the same name back to back, nothing from another cause.
@@ -165,7 +165,7 @@ describe("embedded stripe checkout", () => {
     ]) {
       const source = readFileSync(file, "utf8");
       expect(source).toContain("intent.gatewayLabel");
-      expect(source).not.toContain("churchStripePaymentLabel(started.page.campaign.title)");
+      expect(source).not.toContain("stripePaymentLabel(started.page.campaign.title)");
     }
     // The checkout hands the cause and the campaign text to the catalog.
     for (const file of ["lib/embedded-checkout.ts", "app/api/pagnovo/purchase/route.ts"]) {
@@ -295,17 +295,17 @@ describe("embedded stripe checkout", () => {
 
   it("reads the $5 mission tip from Stripe checkout line items and Link order references", async () => {
     const {
-      churchTipCentsFromStripeLineItems,
+      missionTipCentsFromStripeLineItems,
       checkoutSessionIdFromPaymentIntent,
     } = await import("@/lib/embedded-checkout");
     expect(
-      churchTipCentsFromStripeLineItems([
+      missionTipCentsFromStripeLineItems([
         { description: "Sample campaign", amount_total: 2500 },
         { description: "Mission tip", amount_total: 500 },
       ]),
     ).toBe(500);
     expect(
-      churchTipCentsFromStripeLineItems([
+      missionTipCentsFromStripeLineItems([
         { description: "Sample campaign", amount_total: 2500 },
       ]),
     ).toBe(0);

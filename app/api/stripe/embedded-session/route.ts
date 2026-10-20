@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  CHURCH_MISSION_TIP_NAME,
-  churchStripeCheckoutMetadata,
-  churchStripePaymentLabel,
-  startChurchDonation,
+  MISSION_TIP_NAME,
+  stripeCheckoutMetadata,
+  stripePaymentLabel,
+  startEmbeddedDonation,
   withPendingCheckoutCookie,
 } from "@/lib/embedded-checkout";
 import {
@@ -35,18 +35,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid checkout request" }, { status: 400 });
     }
 
-    const started = await startChurchDonation(request, parsed.data);
+    const started = await startEmbeddedDonation(request, parsed.data);
     if (!started.ok) {
       return NextResponse.json({ error: started.error }, { status: started.status });
     }
 
-    const metadata = churchStripeCheckoutMetadata({
+    const metadata = stripeCheckoutMetadata({
       kind: EMBEDDED_CHECKOUT_KIND,
       checkoutIntentId: started.intent.id,
       affiliatePageId: started.page.id,
       donationOptionId: started.option?.id,
     });
-    const description = churchStripePaymentLabel(started.intent.gatewayLabel);
+    const description = stripePaymentLabel(started.intent.gatewayLabel);
     const session = await getStripe().checkout.sessions.create({
       ui_mode: "embedded_page",
       mode: "payment",
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
                 price_data: {
                   currency: started.page.campaign.currency.toLowerCase(),
                   unit_amount: started.tip,
-                  product_data: { name: CHURCH_MISSION_TIP_NAME },
+                  product_data: { name: MISSION_TIP_NAME },
                 },
               },
             ]

@@ -55,7 +55,7 @@ describe("bot text", () => {
 });
 
 describe("public form inspection", () => {
-  it("drops the church refund spam before it is saved", () => {
+  it("drops refund spam before it is saved", () => {
     const { token, now } = agedToken();
     const verdict = inspectPublicForm({
       formToken: token,

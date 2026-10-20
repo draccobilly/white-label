@@ -414,13 +414,13 @@ export const en: Messages = {
     charitySectionTitle: "Registered public charity",
     charitySectionLead:
       "Every campaign on this site is published by this organization. The EIN, mailing address, and legal documents stay public so you can verify who you are giving to.",
-    churchKicker: "The organization",
-    churchTitle: "Verified fundraisers, published in public.",
-    churchLead:
+    orgKicker: "The organization",
+    orgTitle: "Verified fundraisers, published in public.",
+    orgLead:
       "This organization publishes verified public fundraisers. Replace this text in Admin and in lib/i18n with your own mission.",
-    churchP1:
+    orgP1:
       "A public fundraiser on this site is a story, a goal, and a receipt. Pages are reviewed before they go live.",
-    churchP2:
+    orgP2:
       "When you give here, the gift is one-time, receipted, and attributed to a verified campaign.",
     verseButton: "Verse of the day",
     verseAnother: "Another verse",

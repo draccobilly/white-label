@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ChurchMission } from "@/components/public/ChurchMission";
+import { SiteMission } from "@/components/public/SiteMission";
 import { StoryCta, StorySection } from "@/components/public/StoryBlocks";
 import { PublicInfoPage } from "@/components/public/PublicInfoPage";
 import { getPublicPageChrome } from "@/lib/public-campaigns";
@@ -32,12 +32,12 @@ export default async function AboutUsPage() {
         title={site.aboutPageTitle}
         lead={site.aboutPageLead}
         after={
-          <ChurchMission
-            kicker={site.churchKicker}
-            title={site.churchTitle}
-            lead={site.churchLead}
-            p1={site.churchP1}
-            p2={site.churchP2}
+          <SiteMission
+            kicker={site.orgKicker}
+            title={site.orgTitle}
+            lead={site.orgLead}
+            p1={site.orgP1}
+            p2={site.orgP2}
             verseButton={site.verseButton}
             verseAnother={site.verseAnother}
           />

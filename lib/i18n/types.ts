@@ -334,11 +334,11 @@ export type Messages = {
     charityDocuments: string;
     charitySectionTitle: string;
     charitySectionLead: string;
-    churchKicker: string;
-    churchTitle: string;
-    churchLead: string;
-    churchP1: string;
-    churchP2: string;
+    orgKicker: string;
+    orgTitle: string;
+    orgLead: string;
+    orgP1: string;
+    orgP2: string;
     verseButton: string;
     verseAnother: string;
     trackedReceipt: string;

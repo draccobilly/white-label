@@ -109,7 +109,7 @@ export async function resolveCompanyByPathPrefix(prefix?: string | null) {
   if (matched) return matched;
   if (normalized === MEXICO_PUBLIC_PREFIX) {
     const mexico = await prisma.company.findFirst({
-      where: { slug: "arc-mexico" },
+      where: { slug: "mexico" },
     });
     if (!mexico) return null;
     if (normalizePublicPathPrefix(mexico.publicPathPrefix) === MEXICO_PUBLIC_PREFIX) {
@@ -122,7 +122,7 @@ export async function resolveCompanyByPathPrefix(prefix?: string | null) {
   }
   if (normalized === ARGENTINA_PUBLIC_PREFIX) {
     const argentina = await prisma.company.findFirst({
-      where: { slug: "arc-argentina" },
+      where: { slug: "argentina" },
     });
     if (!argentina) return null;
     if (
