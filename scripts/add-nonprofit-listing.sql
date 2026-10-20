@@ -1,0 +1,11 @@
+ALTER TABLE "Company"
+ADD COLUMN IF NOT EXISTS "nonprofitListed" BOOLEAN NOT NULL DEFAULT true;
+
+ALTER TABLE "Company"
+ADD COLUMN IF NOT EXISTS "nonprofitName" TEXT;
+
+ALTER TABLE "Company"
+ADD COLUMN IF NOT EXISTS "nonprofitDescription" TEXT;
+
+ALTER TABLE "Company"
+ADD COLUMN IF NOT EXISTS "nonprofitLogoUrl" TEXT;

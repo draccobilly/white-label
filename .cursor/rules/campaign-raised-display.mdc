@@ -1,0 +1,16 @@
+---
+description: Public campaign raised amount formula
+alwaysApply: true
+---
+
+# Campaign raised display
+
+The public campaign page at `/c/[campaignSlug]/[affiliateSlug]` does not display `Campaign.currentAmount`. Do not point that screen back at the column, and do not change the formula below, unless the operator asks.
+
+`Campaign.displayPaidPercent` is the percent for that campaign. It is an integer from 0 to 100. `1` means 1%. `0` shows only the baseline. `100` shows the baseline plus the entire paid amount. The admin edits it beside Raised / Doado. A missing or invalid value uses `DISPLAYED_PAID_PERCENT` in `lib/campaign-accounting.ts`, which stays `1`.
+
+- Everyone sees `raisedAmountFromLedger`: `baselineAmount + round(paidAmount * displayPaidPercent / 100)`.
+- This browser also sees `raisedAmountForVisitor`: that public total plus the last live gift on this affiliate page. The donor cookie stores one `checkoutIntentId`. Other browsers, devices, and sessions add `0`.
+- A new live gift increases `paidAmount` for the whole campaign, so the public percent moves for every visitor. Only the full gift is private to the browser that paid it.
+- Related campaign cards use each campaign's own percent, and stay on the public total. `/cause/[slug]` keeps its own static amount.
+- Checkout, home, search, admin, and portal still read `Campaign.currentAmount`. In the admin, Raised / Doado is that column. `baselineAmount` is the starting raised amount after real gifts are set aside, not the goal.

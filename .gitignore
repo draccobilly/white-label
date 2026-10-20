@@ -1,0 +1,20 @@
+node_modules
+.next
+out
+coverage
+*.tsbuildinfo
+playwright-report
+test-results
+
+# Keep environment variables and local tool artifacts out of version control
+.env
+.env.local
+.agents
+.claude
+.windsurf
+skills-lock.json
+
+/generated/prisma
+.local-db-backup.json
+*.mhtml
+*.jnlp

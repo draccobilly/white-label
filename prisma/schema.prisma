@@ -1,0 +1,780 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum SaleStatus {
+  PENDING
+  PAID
+  FAILED
+  PARTIALLY_REFUNDED
+  REFUNDED
+  DISPUTED
+}
+
+enum TrackingEventType {
+  PAGE_VIEW
+  CHECKOUT_STARTED
+  PAYMENT_REDIRECT
+}
+
+enum DeliveryStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum PaymentGateway {
+  STRIPE
+  PAGNOVO
+}
+
+enum CampaignLayout {
+  CLASSIC
+  IMPACT
+}
+
+enum SiteMode {
+  CAMPAIGN
+  INSTITUTIONAL
+}
+
+enum SitePostKind {
+  NEWS
+  FIELD_UPDATE
+  PROGRAM
+}
+
+enum SitePostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum AdminRole {
+  OWNER
+  OPERATOR
+}
+
+/// Owner-set queue status for support and refund requests. The public forms
+/// never send it; new rows start as OPEN through the column default.
+enum RequestStatus {
+  OPEN
+  ANSWERED
+  RESOLVED
+}
+
+/// Queue status of a payout the organizer asked for from the portal.
+enum PayoutStatus {
+  PENDING
+  APPROVED
+  PAID
+  REJECTED
+}
+
+/// Person who submitted a case from Start a fundraiser. Signs in to the
+/// organizer portal with email and password; separate from Admin (Supabase).
+model Organizer {
+  id             String          @id @default(uuid()) @db.Uuid
+  companyId      String          @db.Uuid
+  company        Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  email          String
+  name           String
+  passwordHash   String
+  whatsapp       String?
+  lastLoginAt    DateTime?
+  helpRequests   HelpRequest[]
+  campaigns      Campaign[]
+  payoutRequests PayoutRequest[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([companyId, email])
+}
+
+/// Withdrawal request filed by an organizer for one of their campaigns.
+/// Bank fields are what an international wire needs; the panel reviews it.
+model PayoutRequest {
+  id                String        @id @default(uuid()) @db.Uuid
+  companyId         String        @db.Uuid
+  company           Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  campaignId        String        @db.Uuid
+  campaign          Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  organizerId       String        @db.Uuid
+  organizer         Organizer     @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  amount            Int
+  currency          String        @db.Char(3)
+  accountHolderName String
+  holderAddress     String        @db.Text
+  holderCountry     String
+  bankName          String
+  bankCountry       String
+  bankAddress       String?       @db.Text
+  accountNumber     String
+  accountType       String?
+  routingNumber     String?
+  swiftBic          String?
+  intermediaryBank  String?       @db.Text
+  notes             String?       @db.Text
+  status            PayoutStatus  @default(PENDING)
+  internalNote      String?       @db.Text
+  statusChangedAt   DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([companyId, status, createdAt])
+  @@index([campaignId, createdAt])
+  @@index([organizerId, createdAt])
+}
+
+model Admin {
+  id        String        @id @db.Uuid
+  email     String        @unique
+  name      String?
+  role      AdminRole     @default(OWNER)
+  invites           AdminInvite[]
+  createdCampaigns  Campaign[]
+  affiliate         Affiliate?
+  pushSubscriptions AdminPushSubscription[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model AdminInvite {
+  id          String    @id @default(uuid()) @db.Uuid
+  tokenHash   String    @unique
+  email       String?
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+  createdById String    @db.Uuid
+  createdBy   Admin     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt, usedAt])
+}
+
+model AdminPushSubscription {
+  id        String   @id @default(uuid()) @db.Uuid
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  adminId   String?  @db.Uuid
+  admin     Admin?   @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([adminId])
+}
+
+model Company {
+  id                      String          @id @default(uuid()) @db.Uuid
+  name                    String
+  slug                    String          @unique
+  domain                  String?         @unique
+  publicPathPrefix        String?         @unique
+  isDefault               Boolean         @default(false)
+  siteName                String          @default("Giving Site")
+  logoUrl                 String?
+  impactLogoUrl           String?
+  faviconUrl              String?
+  primaryColor            String          @default("#232323")
+  accentColor             String          @default("#02a95c")
+  footerText              String          @default("Your donation makes a real difference.")
+  legalText               String          @default("Secure one-time donation. Terms and privacy apply.")
+  landingTitle            String          @default("Welcome")
+  landingBody             String          @default("") @db.Text
+  locale                  String          @default("en")
+  paymentGateway          PaymentGateway  @default(STRIPE)
+  campaignLayout          CampaignLayout  @default(CLASSIC)
+  siteMode                SiteMode        @default(CAMPAIGN)
+  contactEmail            String?
+  contactPhone            String?
+  contactAddress          String?         @db.Text
+  nonprofitListed         Boolean         @default(true)
+  nonprofitName           String?
+  nonprofitDescription    String?         @db.Text
+  nonprofitLogoUrl        String?
+  nonprofitEin            String?
+  stripeWebhookSecretEnc  String?
+  pagnovoWebhookSecretEnc String?
+  campaigns               Campaign[]
+  posts                   SitePost[]
+  helpRequests            HelpRequest[]
+  refundRequests          RefundRequest[]
+  organizers              Organizer[]
+  payoutRequests          PayoutRequest[]
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+
+  @@index([isDefault])
+}
+
+model HelpRequest {
+  id           String   @id @default(uuid()) @db.Uuid
+  companyId    String   @db.Uuid
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  about        String
+  name         String
+  email        String
+  whatsapp     String
+  address      String   @db.Text
+  story        String   @db.Text
+  mediaUrls    String[] @default([])
+  consentData  Boolean
+  consentImage Boolean
+  consentTerms Boolean  @default(false)
+  organizerId  String?    @db.Uuid
+  organizer    Organizer? @relation(fields: [organizerId], references: [id], onDelete: SetNull)
+  status          RequestStatus @default(OPEN)
+  statusChangedAt DateTime?
+  internalNote    String?       @db.Text
+  /// Money already given before this campaign opened here, in cents.
+  /// Donors see it as the starting Raised total. New gifts add on top.
+  priorRaisedCents    Int    @default(0)
+  /// How many gifts that starting total came from.
+  priorDonationCount  Int    @default(0)
+  /// Currency of priorRaisedCents. The desk locale chooses it when the form is sent.
+  priorRaisedCurrency String @default("USD") @db.Char(3)
+  createdAt    DateTime @default(now())
+
+  @@index([companyId, createdAt])
+  @@index([companyId, status])
+  @@index([organizerId])
+}
+
+model RefundRequest {
+  id           String   @id @default(uuid()) @db.Uuid
+  companyId    String   @db.Uuid
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  saleId       String?  @db.Uuid
+  sale         Sale?    @relation(fields: [saleId], references: [id], onDelete: SetNull)
+  trackingCode String?
+  email        String
+  name         String?
+  amountNote   String?
+  reason       String
+  details      String   @db.Text
+  status          RequestStatus @default(OPEN)
+  statusChangedAt DateTime?
+  internalNote    String?       @db.Text
+  createdAt    DateTime @default(now())
+
+  @@index([companyId, createdAt])
+  @@index([companyId, status])
+  @@index([saleId])
+}
+
+model SitePost {
+  id            String         @id @default(uuid()) @db.Uuid
+  companyId     String         @db.Uuid
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kind          SitePostKind
+  status        SitePostStatus @default(DRAFT)
+  slug          String
+  title         String
+  excerpt       String         @db.Text
+  body          String         @db.Text
+  coverImageUrl String?
+  publishedAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([companyId, slug])
+  @@index([companyId, kind, status, publishedAt])
+}
+
+model SiteSettings {
+  id                     String   @id @default("default")
+  siteName               String   @default("Giving Site")
+  logoUrl                String?
+  primaryColor           String   @default("#232323")
+  accentColor            String   @default("#02a95c")
+  footerText             String   @default("Your donation makes a real difference.")
+  legalText              String   @default("Secure one-time donation. Terms and privacy apply.")
+  stripeWebhookSecretEnc String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model Affiliate {
+  id                    String          @id @default(uuid()) @db.Uuid
+  adminId               String?         @unique @db.Uuid
+  admin                 Admin?          @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  name                  String
+  slug                  String          @unique
+  email                 String?
+  notes                 String?         @db.Text
+  active                Boolean         @default(true)
+  defaultFbPixelId      String?
+  defaultGooglePixelId  String?
+  defaultTiktokPixelId  String?
+  defaultUtmifyTokenEnc String?
+  utmifyWebhookUrl      String?
+  utmifyPixelScript     String?         @db.Text
+  pages                 AffiliatePage[]
+  sales                 Sale[]
+  chargebacks           Chargeback[]
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([active, name])
+}
+
+model Campaign {
+  id                         String            @id @default(uuid()) @db.Uuid
+  companyId                  String?           @db.Uuid
+  company                    Company?          @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  createdByAdminId           String?           @db.Uuid
+  createdByAdmin             Admin?            @relation(fields: [createdByAdminId], references: [id], onDelete: SetNull)
+  slug                       String
+  title                      String
+  organizerName              String            @default("Giving Site")
+  organizerImageUrl          String?
+  organizerVerified          Boolean           @default(true)
+  organizerBoldText          String            @default("")
+  titleBoldText              String            @default("")
+  summary                    String
+  story                      String            @db.Text
+  category                   String?
+  coverImageUrl              String?
+  coverFocusX                Int               @default(50)
+  coverFocusY                Int               @default(50)
+  galleryImageUrls           String[]          @default([])
+  verificationDocumentUrls   String[]          @default([])
+  verificationNote           String            @default("")
+  videoUrl                   String?
+  checkoutSubtitle           String?
+  socialProofText            String?
+  storyHeading               String            @default("Why this campaign matters")
+  recentDonationsDescription String            @default("Every gift appears here so supporters can confirm their help was counted.")
+  commentsDescription        String            @default("Comments unlock only after a successful donation — one note per gift.")
+  thankYouTitle              String            @default("Thank you!")
+  thankYouMessage            String            @default("Here’s your confirmation — and the official record of your gift.")
+  goalAmount                 Int
+  /// Goal ladder in cents, stage 1 first; empty = the single goalAmount. The page
+  /// shows only the open stage and moves to the next one when the raised amount
+  /// reaches it, with "Stage N Completed" beside the new goal.
+  goalStages                 Int[]             @default([])
+  currentAmount              Int               @default(0)
+  supporterCount             Int               @default(0)
+  baselineAmount             Int               @default(0)
+  baselineSupporterCount     Int               @default(0)
+  paidAmount                 Int               @default(0)
+  paidSupporterCount         Int               @default(0)
+  /// Percent of paidAmount added to the baseline on the public campaign page. 1 = 1%.
+  displayPaidPercent         Int               @default(1)
+  likeCount                  Int               @default(0)
+  shareCount                 Int               @default(0)
+  currency                   String            @default("USD") @db.Char(3)
+  showMissionTip             Boolean           @default(true)
+  missionTipBold             Boolean           @default(false)
+  unlisted                   Boolean           @default(false)
+  status                     CampaignStatus    @default(DRAFT)
+  publishedAt                DateTime?
+  /// Product names sent to Stripe/PayPal/PagNovo, with {amount} in place.
+  gatewayNames               String[]          @default([])
+  /// Fingerprint of title+category+summary+story the names were written from.
+  gatewayNamesHash           String?
+  /// "manual" when edited in the admin, otherwise the model that wrote them.
+  gatewayNamesSource         String?
+  gatewayNamesAt             DateTime?
+  options                    DonationOption[]
+  pages                      AffiliatePage[]
+  sales                      Sale[]
+  comments                   DonationComment[]
+  updates                    CampaignUpdate[]
+  /// Portal account allowed to edit this campaign, post updates, and request payouts.
+  organizerId                String?           @db.Uuid
+  organizer                  Organizer?        @relation(fields: [organizerId], references: [id], onDelete: SetNull)
+  payoutRequests             PayoutRequest[]
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
+
+  @@unique([companyId, slug])
+  @@index([status, publishedAt])
+  @@index([updatedAt])
+  @@index([companyId, status])
+  @@index([createdByAdminId])
+  @@index([organizerId])
+}
+
+model CampaignUpdate {
+  id         String   @id @default(uuid()) @db.Uuid
+  campaignId String   @db.Uuid
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  title      String?
+  body       String   @db.Text
+  authorName String?
+  createdAt  DateTime @default(now())
+
+  @@index([campaignId, createdAt])
+}
+
+model DonationOption {
+  id           String        @id @default(uuid()) @db.Uuid
+  campaignId   String        @db.Uuid
+  campaign     Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  amount       Int
+  label        String?
+  suggested    Boolean       @default(false)
+  sortOrder    Int           @default(0)
+  paymentLinks    PaymentLink[]
+  checkoutIntents CheckoutIntent[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([campaignId, amount])
+  @@index([campaignId, sortOrder])
+}
+
+model AffiliatePage {
+  id              String                @id @default(uuid()) @db.Uuid
+  campaignId      String                @db.Uuid
+  campaign        Campaign              @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  affiliateId     String                @db.Uuid
+  affiliate       Affiliate             @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  active          Boolean               @default(true)
+  fbPixelId           String?
+  googlePixelId       String?
+  tiktokPixelId       String?
+  utmifyTokenEnc      String?
+  utmifyPixelScript   String?               @db.Text
+  utmifyWebhookUrl    String?
+  paymentLinks    PaymentLink[]
+  checkoutIntents CheckoutIntent[]
+  trackingEvents  TrackingEvent[]
+  presences       VisitorPresence[]
+  sales           Sale[]
+  deliveries      IntegrationDelivery[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@unique([campaignId, affiliateId])
+  @@index([affiliateId, active])
+  @@index([campaignId, active])
+}
+
+model PaymentLink {
+  id                  String           @id @default(uuid()) @db.Uuid
+  affiliatePageId     String           @db.Uuid
+  affiliatePage       AffiliatePage    @relation(fields: [affiliatePageId], references: [id], onDelete: Cascade)
+  donationOptionId    String           @db.Uuid
+  donationOption      DonationOption   @relation(fields: [donationOptionId], references: [id], onDelete: Cascade)
+  url                 String
+  stripeCheckoutUrl   String?
+  stripePaymentLinkId String?
+  active              Boolean          @default(true)
+  checkoutIntents     CheckoutIntent[]
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  @@unique([affiliatePageId, donationOptionId])
+  @@index([stripePaymentLinkId])
+}
+
+model CheckoutIntent {
+  id                   String          @id @default(uuid()) @db.Uuid
+  affiliatePageId      String          @db.Uuid
+  affiliatePage        AffiliatePage   @relation(fields: [affiliatePageId], references: [id], onDelete: Cascade)
+  paymentLinkId        String?         @db.Uuid
+  paymentLink          PaymentLink?    @relation(fields: [paymentLinkId], references: [id], onDelete: Restrict)
+  donationOptionId     String?         @db.Uuid
+  donationOption       DonationOption? @relation(fields: [donationOptionId], references: [id], onDelete: Restrict)
+  amount               Int
+  currency             String          @db.Char(3)
+  src                  String?
+  sck                  String?
+  utmSource            String?
+  utmMedium            String?
+  utmCampaign          String?
+  utmContent           String?
+  utmTerm              String?
+  landingUrl           String?
+  referrer             String?
+  clientIp             String?
+  userAgent            String?
+  fbp                  String?
+  fbc                  String?
+  /// Browser tab id from the campaign page. Optional. Payment does not read it.
+  visitorSessionId     String?
+  pendingComment       String?
+  payerName            String?
+  payerEmail           String?
+  tipAmount            Int             @default(0)
+  hideName             Boolean         @default(false)
+  /// Name sent to Stripe, PayPal, and PagNovo. The campaign title stays the sale name.
+  gatewayLabel         String?
+  /// Cause or campaign the donor actually bought, shown to Utmify.
+  soldLabel            String?
+  pagnovoTransactionId String?         @unique
+  paypalOrderId        String?         @unique
+  pagnovoClabe         String?
+  sale                 Sale?
+  createdAt            DateTime        @default(now())
+  expiresAt            DateTime
+
+  @@index([affiliatePageId, createdAt])
+  @@index([expiresAt])
+}
+
+model TrackingEvent {
+  id              String            @id @default(uuid()) @db.Uuid
+  affiliatePageId String            @db.Uuid
+  affiliatePage   AffiliatePage     @relation(fields: [affiliatePageId], references: [id], onDelete: Cascade)
+  type            TrackingEventType
+  sessionId       String?
+  src             String?
+  sck             String?
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  utmContent      String?
+  utmTerm         String?
+  /// Coarse visitor location resolved on the server from the request
+  /// (never the IP itself). Null before the lookup answers or when unknown.
+  country         String?           @db.Char(2)
+  region          String?
+  city            String?
+  latitude        Float?
+  longitude       Float?
+  createdAt       DateTime          @default(now())
+
+  @@index([affiliatePageId, type, createdAt])
+  @@index([createdAt])
+}
+
+/// Who still has the campaign tab open. A heartbeat updates lastSeenAt.
+/// The IP is never stored. Additive: nothing else references this table.
+model VisitorPresence {
+  id              String   @id @default(uuid()) @db.Uuid
+  sessionId       String
+  affiliatePageId String   @db.Uuid
+  affiliatePage   AffiliatePage @relation(fields: [affiliatePageId], references: [id], onDelete: Cascade)
+  startedAt       DateTime @default(now())
+  lastSeenAt      DateTime @default(now())
+  country         String?  @db.Char(2)
+  city            String?
+  latitude        Float?
+  longitude       Float?
+
+  @@unique([sessionId, affiliatePageId])
+  @@index([lastSeenAt])
+}
+
+model Sale {
+  id                      String         @id @default(uuid()) @db.Uuid
+  checkoutIntentId        String         @unique @db.Uuid
+  checkoutIntent          CheckoutIntent @relation(fields: [checkoutIntentId], references: [id], onDelete: Restrict)
+  affiliatePageId         String         @db.Uuid
+  affiliatePage           AffiliatePage  @relation(fields: [affiliatePageId], references: [id], onDelete: Restrict)
+  campaignId              String         @db.Uuid
+  campaign                Campaign       @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  affiliateId             String         @db.Uuid
+  affiliate               Affiliate      @relation(fields: [affiliateId], references: [id], onDelete: Restrict)
+  stripeCheckoutSessionId String?        @unique
+  stripePaymentIntentId   String?        @unique
+  stripeChargeId          String?        @unique
+  stripePaymentLinkId     String?
+  pagnovoTransactionId    String?        @unique
+  paypalOrderId           String?        @unique
+  paypalCaptureId         String?        @unique
+  gateway                 String         @default("stripe")
+  amount                  Int
+  tipAmount               Int            @default(0)
+  gatewayFee              Int            @default(0)
+  amountRefunded          Int            @default(0)
+  currency                String         @db.Char(3)
+  status                  SaleStatus     @default(PENDING)
+  customerName            String         @default("Anonymous")
+  customerEmail           String?
+  paymentMethod           String         @default("credit_card")
+  /// Same product name that was sent to the gateway for this sale.
+  gatewayLabel            String?
+  trackingCode            String?
+  livemode                Boolean        @default(false)
+
+  paidAt      DateTime?
+  refundedAt  DateTime?
+  deliveries  IntegrationDelivery[]
+  comments       DonationComment[]
+  chargebacks    Chargeback[]
+  refundRequests RefundRequest[]
+  createdAt      DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@index([affiliateId, status, createdAt])
+  @@index([campaignId, status, createdAt])
+  @@index([affiliatePageId, status, createdAt])
+  @@index([campaignId, livemode, status, paidAt])
+  @@index([trackingCode])
+}
+
+model DonationComment {
+  id         String             @id @default(uuid()) @db.Uuid
+  saleId     String?            @db.Uuid
+  sale       Sale?              @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  campaignId String             @db.Uuid
+  campaign   Campaign           @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  parentId   String?            @db.Uuid
+  parent     DonationComment?   @relation("CommentThread", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    DonationComment[]  @relation("CommentThread")
+  authorName String
+  body       String             @db.Text
+  hidden     Boolean            @default(false)
+  createdAt  DateTime           @default(now())
+
+  @@index([campaignId, createdAt])
+  @@index([parentId])
+  @@index([saleId])
+}
+
+model Chargeback {
+  id              String    @id @default(uuid()) @db.Uuid
+  stripeDisputeId String    @unique
+  saleId          String    @db.Uuid
+  sale            Sale      @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  affiliateId     String    @db.Uuid
+  affiliate       Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Restrict)
+  campaignId      String    @db.Uuid
+  amount          Int
+  currency        String    @db.Char(3)
+  status          String
+  reason          String?
+  openedAt        DateTime
+  closedAt        DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([affiliateId, openedAt])
+  @@index([status, openedAt])
+}
+
+model WebhookEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  provider    String
+  eventId     String
+  eventType   String
+  payloadHash String?
+  processedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@unique([provider, eventId])
+  @@index([eventType, createdAt])
+}
+
+model IntegrationDelivery {
+  id              String         @id @default(uuid()) @db.Uuid
+  affiliatePageId String         @db.Uuid
+  affiliatePage   AffiliatePage  @relation(fields: [affiliatePageId], references: [id], onDelete: Cascade)
+  saleId          String         @db.Uuid
+  sale            Sale           @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  status          DeliveryStatus @default(PENDING)
+  idempotencyKey  String         @unique
+  payload         Json
+  attemptCount    Int            @default(0)
+  maxAttempts     Int            @default(8)
+  nextAttemptAt   DateTime       @default(now())
+  responseBody    String?
+  lastError       String?
+  succeededAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([affiliatePageId, createdAt])
+  @@index([saleId])
+}
+
+/// Owner-only vault. Values are AES-256-GCM ciphertext produced with
+/// VAULT_ENCRYPTION_KEY; the preview is a masked hint computed at write time.
+/// Additive table — nothing else in the schema references it.
+model AdminVaultItem {
+  id             String    @id @default(uuid()) @db.Uuid
+  category       String
+  label          String
+  valueEnc       String    @db.Text
+  preview        String
+  notes          String?   @db.Text
+  createdByEmail String?
+  lastRevealedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([category, label])
+  @@index([createdAt])
+}
+
+/// Ad spend typed by the owner (per day, optionally per campaign or affiliate).
+/// Kept without relations on purpose: the campaign and affiliate models stay
+/// untouched, and a deleted campaign keeps its historical spend.
+model AdSpend {
+  id             String   @id @default(uuid()) @db.Uuid
+  companyId      String   @db.Uuid
+  day            DateTime @db.Date
+  source         String
+  amount         Int
+  currency       String   @db.Char(3)
+  campaignId     String?  @db.Uuid
+  affiliateId    String?  @db.Uuid
+  note           String?
+  createdByEmail String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([companyId, day])
+  @@index([companyId, campaignId, day])
+}
+
+/// Result of one availability probe of the public site, run from the panel.
+model SiteCheck {
+  id         String   @id @default(uuid()) @db.Uuid
+  companyId  String   @db.Uuid
+  target     String
+  url        String
+  ok         Boolean
+  statusCode Int?
+  latencyMs  Int
+  error      String?
+  checkedAt  DateTime @default(now())
+
+  @@index([companyId, checkedAt])
+}
+
+/// PDF of a donation acknowledgment letter that was e-mailed to a donor.
+/// Kept so the organisation can give the IRS the same file the donor received.
+/// Sample letters are not stored. A corrected letter is a new row.
+/// No relation on purpose: the copy stays if the sale row is later removed.
+model DonationLetterCopy {
+  id            String   @id @default(uuid()) @db.Uuid
+  companyId     String   @db.Uuid
+  saleId        String   @db.Uuid
+  /// WebhookEvent id when this row was rebuilt from a letter already sent.
+  /// Empty when the copy was saved at the moment of sending.
+  sourceEventId String?  @unique @db.Uuid
+  sentAt        DateTime
+  amountCents   Int
+  currency      String   @db.Char(3)
+  reference     String
+  donorName     String
+  filename      String
+  pdf           Bytes
+  /// Set when this copy was cancelled. The file stays; it is no longer valid for the IRS.
+  voidedAt      DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([companyId, sentAt])
+  @@index([saleId, sentAt])
+}
